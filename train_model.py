@@ -76,3 +76,34 @@ print(df.head())
 # Why 5? Because that's the default. It's enough to see the column names and sample data without overwhelming your terminal with 20,000 rows.
 
 
+# Separate the clues (X) from the final answer we want to guess (y)
+# We drop 'MedHouseVal' from X because the brain shouldn't see the answer while studying!
+X = df.drop(columns=['MedHouseVal'])
+y = df['MedHouseVal']
+
+print("\n3. Data successfully split into Features (X) and Target (y)!")
+
+
+
+
+from sklearn.linear_model import LinearRegression
+
+# Create a blank, untrained model brain
+model = LinearRegression()
+
+# Tell the brain to look at the clues and learn the patterns
+# ===== YOUR CODE HERE =====
+# Type exactly: model.fit(X, y)
+
+
+print("4. Brain successfully trained on the data!")
+
+
+import joblib
+
+# Save the trained brain into a file named 'house_model.joblib'
+# ===== YOUR CODE HERE =====
+joblib.dump(model, 'house_model.joblib')
+
+
+print("5. Model brain frozen and saved to disk safely!")

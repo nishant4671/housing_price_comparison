@@ -1,0 +1,1 @@
+An API (Application Programming Interface) is like a digital waiter in a restaurant. The user orders a prediction by sending house data, the waiter takes it to the kitchen (our trained model), and then brings back the house price prediction. We will use Flask, which is a lightweight framework to build web servers in Python
