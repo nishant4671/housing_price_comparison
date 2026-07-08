@@ -126,3 +126,6 @@ Now that you know *what* it is, go back to your AI tutor chat (the one with the 
 **Your action:** Open that new chat, paste the upgraded prompt, tell it *"Yes, ready for Phase 1"*, and let's get that environment set up. When you hit the line that says `import pandas as pd`, you'll smile because you know exactly what it does. 
 
 Let me know when you get your virtual environment and pandas installed!
+
+
+
