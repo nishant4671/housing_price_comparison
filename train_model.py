@@ -102,3 +102,23 @@ from sklearn.pipeline import Pipeline
 
 
 print("Step 1: Upgraded tools imported successfully!")
+
+
+
+
+# 1. Load the raw data
+raw_data = fetch_california_housing(as_frame=True)
+df = raw_data.frame
+
+# 2. Split into clues (X) and answers (y)
+X = df.drop(columns=['MedHouseVal'])
+y = df['MedHouseVal']
+
+# 3. Create the assembly line
+# We name our first station 'scaler' and put StandardScaler inside it.
+# ===== YOUR CODE HERE =====
+pipeline = Pipeline([('scaler', StandardScaler())])
+
+
+print("Step 2: Data loaded and Pipeline assembly line created!")
+
