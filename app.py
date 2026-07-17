@@ -174,7 +174,7 @@ def get_metrics():
     Returns the raw metrics data as plain text with the correct content-type header.
     """
     # ===== YOUR CODE HERE =====
-    # Type exactly: return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
+    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
     #
     # WHAT THE MISSING LINE DOES:
     # - generate_latest(): This function scans all registered Prometheus

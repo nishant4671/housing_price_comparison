@@ -1,29 +1,223 @@
+# =============================================================================
+# COMMENTARY ON THE CI/CD PIPELINE CODE BELOW
+# =============================================================================
+# This is a GitHub Actions workflow file (YAML format).
+# It is stored in your repository at: .github/workflows/ci.yml
+# GitHub Actions is a continuous integration and continuous delivery (CI/CD)
+# platform that runs automated jobs whenever you push code or open pull requests.
+# =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# LINE 1: The name of the workflow
+# -----------------------------------------------------------------------------
+# name: CI/CD Pipeline
+#
+# WHAT IT DOES:
+# - This sets the display name of this workflow in the GitHub Actions tab.
+# - When you go to the "Actions" tab in your GitHub repository, you will see
+#   this name ("CI/CD Pipeline") listed as the workflow run name.
+# - It helps you identify which workflow is running among multiple workflows
+#   in the same repository.
+# - While this is named "CI/CD Pipeline", the current configuration only
+#   implements the "CI" (Continuous Integration) part—it runs tests. The "CD"
+#   (Continuous Deployment) part would be added later as additional jobs
+#   that deploy the container to a cloud server or registry.
 name: CI/CD Pipeline
 
+
+# -----------------------------------------------------------------------------
+# LINES 3-6: The "on" block - Defining when this workflow should run
+# -----------------------------------------------------------------------------
+# on:
+#   push:
+#     branches: [ main ]
+#   pull_request:
+#     branches: [ main ]
+#
+# WHAT IT DOES:
+# - This block defines the events that will trigger (start) this workflow.
+# - It uses a YAML list format under each event type.
+#
+# Event 1: "push" to the "main" branch
+#   - Whenever a developer pushes new code (git push) to the branch named
+#     "main", this workflow will automatically start.
+#   - This means every commit you make to main gets tested.
+#   - This is crucial for catching bugs early, before they become part of the
+#     "production" branch.
+#
+# Event 2: "pull_request" targeting the "main" branch
+#   - Whenever someone opens a new Pull Request (PR) that wants to merge code
+#     INTO the "main" branch, this workflow will automatically start.
+#   - This runs the tests on the code IN THE PR BEFORE it is merged.
+#   - If the tests fail, the PR shows a red ❌ "Check Failure" status, and the
+#     PR cannot be merged (if you have branch protection rules enabled).
+#   - This is the #1 way to prevent broken code from ever reaching production.
+#
+# Why both? Pushes to main catch issues after merge (post-merge).
+# Pull requests catch issues BEFORE merge (pre-merge). Both are industry best practices.
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
 
+
+# -----------------------------------------------------------------------------
+# LINES 8-10: The "jobs" section - What work to execute
+# -----------------------------------------------------------------------------
+# jobs:
+#   test:
+#     runs-on: ubuntu-latest
+#
+# WHAT IT DOES:
+# - "jobs:" declares that we are defining a group of tasks to be executed.
+#
+# - "test:" is the unique identifier for THIS specific job.
+#   - You can name this anything (e.g., "build", "deploy", "lint").
+#   - Here, it is named "test" because its primary purpose is to run our test suite.
+#   - If you had multiple jobs (e.g., "test", "build", "deploy"), they could
+#     run in parallel or sequentially.
+#
+# - "runs-on: ubuntu-latest": This specifies the type of virtual machine (runner)
+#   that GitHub will spin up to run this job.
+#   - "ubuntu-latest" means the latest stable version of Ubuntu Linux.
+#   - GitHub provides free runners for Linux, Windows, and macOS.
+#   - Ubuntu is the most popular choice for CI/CD because it's fast, free,
+#     and closely matches production server environments (most cloud servers run Linux).
+#   - The runner is a fresh, clean VM that GitHub creates just for this workflow
+#     and destroys immediately after the job finishes. This ensures reproducibility.
 jobs:
   test:
     runs-on: ubuntu-latest
-    steps:
+
+
+# -----------------------------------------------------------------------------
+# LINES 11-24: The "steps" block - The sequence of commands to run
+# -----------------------------------------------------------------------------
+# steps:
+#   - name: Checkout Code
+#     uses: actions/checkout@v3
+#
+# WHAT IT DOES:
+# - "steps:" is a list of individual tasks that will run sequentially on the
+#   Ubuntu VM, in the exact order they are written.
+#
+# - "Checkout Code": A human-readable name for this step.
+# - "uses: actions/checkout@v3": This is the MAGIC line.
+#   - "uses" tells GitHub to use a pre-packaged Action (like a plugin).
+#   - "actions/checkout" is the official GitHub Action that clones your repository
+#     code into the VM's working directory.
+#   - "@v3" specifies the version of the action to use (v3 is the latest stable).
+#   - Without this step, the runner would be empty (no code). You cannot run
+#     tests or install dependencies because the source code isn't there.
+#   - This step is absolutely MANDATORY for any workflow that needs your code.
+steps:
     - name: Checkout Code
       uses: actions/checkout@v3
 
+# -----------------------------------------------------------------------------
+# SET UP PYTHON: Installing the Python interpreter on the runner
+# -----------------------------------------------------------------------------
+#   - name: Set up Python 3.11
+#     uses: actions/setup-python@v4
+#     with:
+#       python-version: '3.11'
+#
+# WHAT IT DOES:
+# - "Set up Python 3.11": A descriptive name.
+# - "uses: actions/setup-python@v4": This is an official GitHub Action
+#   that installs a specific version of Python on the runner VM.
+# - "with:" is a block that passes parameters to the action.
+# - "python-version: '3.11'": Tells the action exactly which Python version to install.
+# - Why pin to 3.11? "ubuntu-latest" might come with Python 3.10 or 3.12 by default.
+#   Pinning to 3.11 ensures that your tests run on the SAME Python version you
+#   used during local development, preventing "It works on my machine" problems.
+# - Installing Python is essential because your API, tests, and dependencies
+#   are all written in Python.
     - name: Set up Python 3.11
       uses: actions/setup-python@v4
       with:
         python-version: '3.11'
 
+# -----------------------------------------------------------------------------
+# INSTALL DEPENDENCIES: Installing all required libraries
+# -----------------------------------------------------------------------------
+#   - name: Install Dependencies
+#     run: |
+#       python -m pip install --upgrade pip
+#       pip install -r requirements.txt
+#       pip install pytest httpx
+#
+# WHAT IT DOES:
+# - "run: |" tells GitHub to execute a shell command (or multiple commands) on the runner.
+#   - The pipe symbol "|" allows us to write multiple lines of shell commands.
+# - Command 1: "python -m pip install --upgrade pip"
+#   - Upgrades the pip package manager to the latest version.
+#   - This ensures we can install packages without version mismatch errors.
+# - Command 2: "pip install -r requirements.txt"
+#   - Installs ALL the Python packages listed in your requirements.txt file
+#     (FastAPI, Pydantic, Scikit-learn, Pandas, Joblib, Uvicorn, etc.).
+#   - This replicates your local development environment exactly on the runner.
+# - Command 3: "pip install pytest httpx"
+#   - Installs two additional packages:
+#     - "pytest": The testing framework we will use to run our test suite.
+#     - "httpx": An HTTP client that allows our tests to make actual requests
+#       to the FastAPI server (using FastAPI's TestClient internally).
+# - Why not just put all of them in requirements.txt? You could! But it's common
+#   to have a separate "dev-requirements.txt" for testing packages. Installing
+#   them separately is also fine for this simple pipeline.
     - name: Install Dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install pytest httpx
 
+# -----------------------------------------------------------------------------
+# RUN TEST SUITE: The actual verification step
+# -----------------------------------------------------------------------------
+#   - name: Run Test Suite
+#     run: |
+#       pytest test_app.py
+#
+# WHAT IT DOES:
+# - This is the CRUCIAL "Quality Gate" step.
+# - "run: |" executes the shell command.
+# - "pytest test_app.py": This runs the Pytest test runner against your test file.
+# - What happens when it runs?
+#   - Pytest finds all functions in test_app.py that start with "test_".
+#   - It executes them.
+# - If ALL tests pass (100% success), Pytest exits with an exit code of 0.
+#   - GitHub Actions sees exit code 0 and marks this step as "success" (green ✅).
+#   - The workflow continues (or completes successfully).
+# - If ANY test fails, Pytest exits with a non-zero exit code (1).
+#   - GitHub Actions sees this and immediately marks the step as "failed" (red ❌).
+#   - The workflow stops execution.
+#   - The overall job is marked as "failed".
+# - This is exactly what you want! It blocks broken code from being merged.
+# - The pipeline gives you confidence that your API still works every time you make a change.
     - name: Run Test Suite
       run: |
         pytest test_app.py
+
+# =============================================================================
+# END OF WORKFLOW FILE
+# =============================================================================
+# WHERE THIS FILE LIVES:
+# In your repository, this file must be located at:
+#   .github/workflows/ci.yml
+# (GitHub specifically looks for YAML files inside the .github/workflows folder).
+#
+# HOW TO SEE IT IN ACTION:
+# 1. Push this file to your repository's "main" branch.
+# 2. Click the "Actions" tab in your GitHub repository.
+# 3. You will see the "CI/CD Pipeline" workflow listed.
+# 4. Make a PR that modifies your app.py. Watch the workflow run automatically.
+# 5. If tests pass, the PR shows a green checkmark. If they fail, it shows a red X.
+#
+# WHAT IS MISSING (The "CD" Part)?
+# Currently, this pipeline only runs tests (Continuous Integration).
+# To make it a full CI/CD pipeline, you would ADD a SECOND job (or extend this one)
+# to build a Docker image and push it to a container registry (like GHCR or Docker Hub).
+# Example: A "build-and-deploy" job that runs after the "test" job successfully completes.
+# =============================================================================
